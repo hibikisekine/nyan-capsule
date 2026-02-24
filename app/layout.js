@@ -1,34 +1,28 @@
-import { Outfit } from "next/font/google";
+import { Inter, Outfit, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 
-const outfit = Outfit({ subsets: ["latin"] });
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: '--font-outfit',
+});
+
+const notoJP = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ['400', '700', '900'],
+  variable: '--font-noto-jp',
+});
 
 export const metadata = {
-  title: "NyanCapsule | 猫との思い出カプセル",
-  description: "猫ちゃんとの日々の思い出を動画と日記で残す、AIチャット・ダイジェストアプリ",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "NyanCapsule",
-  },
-  formatDetection: {
-    telephone: false,
-  },
-};
-
-export const viewport = {
-  themeColor: "#fff9f2",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  title: "NyanCapsule | Pet Memory Capsule",
+  description: "Capture precious moments with your pets assisted by AI.",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ja">
-      <body className={outfit.className}>{children}</body>
+    <html lang="en">
+      <body className={`${outfit.variable} ${notoJP.variable}`}>
+        {children}
+      </body>
     </html>
   );
 }

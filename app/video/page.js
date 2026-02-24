@@ -5,13 +5,40 @@ import { NyanCapsuleVideo } from '../../remotion/MyVideo';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
+const LANGUAGES = {
+  JA: {
+    back: "← 戻る",
+    bestDigest: "✨ ベスト思い出ダイジェスト",
+    normalDigest: "思い出ダイジェスト",
+    hint: "画面を録画してTikTokやInstagramにシェアしよう！✨",
+    saveReport: "レポートとして保存 (PDF) 🐾",
+  },
+  EN: {
+    back: "← Back",
+    bestDigest: "✨ Best Memory Digest",
+    normalDigest: "Memory Digest",
+    hint: "Record your screen and share on TikTok or Instagram! ✨",
+    saveReport: "Save as Report (PDF) 🐾",
+  },
+  ZH: {
+    back: "← 返回",
+    bestDigest: "✨ 最佳回忆精华",
+    normalDigest: "回忆精华",
+    hint: "录制并分享到 TikTok 或 Instagram！✨",
+    saveReport: "保存为报告 (PDF) 🐾",
+  }
+};
+
 export default function VideoPage() {
+  const [lang, setLang] = useState('JA');
+  const t = LANGUAGES[lang] || LANGUAGES.JA;
+
   const [entries, setEntries] = useState([]);
   const [activeCat, setActiveCat] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
   const [mode, setMode] = useState(null);
 
-  // --- IndexedDB Utils (to load media blobs) ---
+  // ... (getDB and getMediaFromDB remain same)
   const getDB = useCallback(() => {
     return new Promise((resolve, reject) => {
       if (typeof window === 'undefined') return reject('No window');
@@ -36,6 +63,9 @@ export default function VideoPage() {
   useEffect(() => {
     setIsMounted(true);
     const init = async () => {
+      const savedLang = localStorage.getItem('nyan_lang') || 'JA';
+      setLang(savedLang);
+
       const savedEntries = localStorage.getItem('nyan_entries');
       const savedCats = localStorage.getItem('nyan_cats');
       const savedActiveId = localStorage.getItem('nyan_active_id');
@@ -49,15 +79,13 @@ export default function VideoPage() {
           const parsed = JSON.parse(savedEntries);
           let catEntries = parsed.filter(e => e.catId === active.id);
 
-          // Filter for "Best Only" if query param exists
           const params = new URLSearchParams(window.location.search);
           const currentMode = params.get('mode');
           if (currentMode === 'best') {
             catEntries = catEntries.filter(e => e.isSpecial);
           }
-          setMode(currentMode); // Set the mode state
+          setMode(currentMode);
 
-          // Hydrate blobs
           const hydrated = await Promise.all(catEntries.map(async (entry) => {
             if (entry.hasStoredMedia) {
               const blob = await getMediaFromDB(entry.id);
@@ -76,16 +104,16 @@ export default function VideoPage() {
 
   if (!isMounted || !activeCat) return null;
 
-  const slideDuration = 75; // 2.5 seconds
+  const slideDuration = 75;
   const totalFrames = Math.max(slideDuration, entries.length * slideDuration);
 
   return (
     <div className="video-view-container">
       <header className="video-header glass">
-        <Link href="/" className="back-link">← 戻る</Link>
+        <Link href="/" className="back-link">{t.back}</Link>
         <div className="header-labels">
           <span className="cat-label">{activeCat.emoji} {activeCat.name}</span>
-          <h1>{mode === 'best' ? '✨ ベスト思い出ダイジェスト' : '思い出ダイジェスト'}</h1>
+          <h1>{mode === 'best' ? t.bestDigest : t.normalDigest}</h1>
         </div>
       </header>
 
@@ -103,15 +131,15 @@ export default function VideoPage() {
             style={{
               width: '100%',
               aspectRatio: '9/16',
-              borderRadius: '24px',
+              borderRadius: '32px',
             }}
           />
         </div>
 
         <div className="video-actions">
-          <p className="hint">画面を録画してTikTokやInstagramにシェアしよう！✨</p>
-          <button className="share-btn nyan-gradient" onClick={() => window.print()}>
-            レポートとして保存 (PDF) 🐾
+          <p className="hint">{t.hint}</p>
+          <button className="share-btn nyan-gradient btn-hover" onClick={() => window.print()}>
+            {t.saveReport}
           </button>
         </div>
       </main>

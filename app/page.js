@@ -189,6 +189,7 @@ export default function Home() {
     } catch (e) { return null; }
   };
 
+  // --- Initialization ---
   useEffect(() => {
     setIsMounted(true);
     const init = async () => {
@@ -203,7 +204,10 @@ export default function Home() {
       if (savedLang) setLang(savedLang);
       if (!onboarded) setShowOnboarding(true);
       if (savedUser) setUserName(savedUser);
-      if (savedKey) setApiKey(savedKey);
+
+      // Use env var as fallback if localStorage is empty
+      const initialKey = savedKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+      setApiKey(initialKey);
 
       if (savedCats) {
         try {
@@ -245,33 +249,74 @@ export default function Home() {
 
   const testAiConnection = async () => {
     const trimmedKey = apiKey.trim();
-    if (!trimmedKey) return setAiError('No Key');
+    if (!trimmedKey) return setAiError('Key required');
     setAiStatus('testing');
+    setAiError('');
+
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${trimmedKey}`);
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message);
-      setAiStatus('success');
-      setNotification({ message: 'Connected! 🐾' });
-      setTimeout(() => setNotification(null), 3000);
+      // Try v1 first, then v1beta
+      let listData = { models: [] };
+      try {
+        const resV1 = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${trimmedKey}`);
+        listData = await resV1.json();
+        if (listData.error) throw new Error(listData.error.message);
+      } catch (e) {
+        const resBeta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${trimmedKey}`);
+        listData = await resBeta.json();
+      }
+
+      if (listData.error) throw new Error(listData.error.message);
+
+      const availableModels = (listData.models || [])
+        .filter(m => m.supportedGenerationMethods.includes('generateContent'))
+        .map(m => m.name.replace('models/', ''));
+
+      const modelsToTry = [...new Set(["gemini-1.5-flash", "gemini-1.5-flash-latest", ...availableModels])];
+      const genAI = new GoogleGenerativeAI(trimmedKey);
+      let success = false;
+
+      for (const modelName of modelsToTry) {
+        try {
+          const m = genAI.getGenerativeModel({ model: modelName });
+          const result = await m.generateContent("Test");
+          if (result) {
+            setStableModel(modelName);
+            setAiStatus('success');
+            setNotification({ message: `Success! (${modelName}) 🐾` });
+            setTimeout(() => setNotification(null), 3000);
+            success = true;
+            break;
+          }
+        } catch (e) { }
+      }
+      if (!success) {
+        setAiStatus('error');
+        setAiError('Could not find a valid model.');
+      }
     } catch (e) {
       setAiStatus('error');
       setAiError(e.message);
     }
   };
 
-  const callGeminiAI = async (text, file, catProf) => {
-    if (!apiKey || !apiKey.trim().startsWith('AIza')) return null;
+  const callGeminiAI = async (text, file, catProf, currentLang, currentUser) => {
+    const key = apiKey.trim() || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!key || !key.startsWith('AIza')) {
+      console.warn("No valid API Key found");
+      return null;
+    }
+
     try {
-      const genAI = new GoogleGenerativeAI(apiKey.trim());
+      const genAI = new GoogleGenerativeAI(key);
       const model = genAI.getGenerativeModel({ model: stableModel });
 
       const persona = `
-        Language: ${lang}.
-        Role: You are ${catProf.name}, a ${catProf.type || 'pet'}. Personality: ${catProf.personality}.
-        Owner: ${userName}.
-        Task: Reply to the diary entry in ${lang}. Be concise (1-2 sentences). 
-        Format: JSON { "reaction": "your reply", "isSpecial": true/false }
+        Language: ${currentLang}.
+        Role: You are ${catProf.name}, a ${catProf.type || 'pet'}. Species: ${catProf.type}. Personality: ${catProf.personality}.
+        Owner Name: ${currentUser}.
+        Task: Reply to the diary entry in ${currentLang}. Be warm, unique, and empathetic. 1-2 sentences. 
+        If it's special, set isSpecial to true.
+        Return ONLY valid JSON: { "reaction": "your reply", "isSpecial": true/false }
       `;
 
       let result;
@@ -283,35 +328,69 @@ export default function Home() {
       }
 
       const responseText = result.response.text();
-      const jsonMatch = responseText.match(/\{.*\}/s);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : { reaction: responseText, isSpecial: false };
-    } catch (e) { return null; }
+      try {
+        const jsonMatch = responseText.match(/\{.*\}/s);
+        if (jsonMatch) return JSON.parse(jsonMatch[0]);
+      } catch (e) { }
+      return { reaction: responseText, isSpecial: false };
+    } catch (e) {
+      console.error("AI Error:", e);
+      return null;
+    }
   };
 
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newText.trim() || isSaving) return;
     setIsSaving(true);
+
+    // Capture state values before clearing for the async call
     const entryId = Date.now();
+    const capturedFile = selectedFile;
+    const capturedText = newText;
+    const capturedCat = { ...activeCat };
+    const capturedLang = lang;
+    const capturedUser = userName;
+
     try {
-      if (selectedFile) await saveMediaToDB(entryId, selectedFile);
+      if (capturedFile) await saveMediaToDB(entryId, capturedFile);
+
       const newEntry = {
-        id: entryId, catId: activeCatId, date: new Date().toISOString().split('T')[0],
+        id: entryId, catId: capturedCat.id, date: new Date().toISOString().split('T')[0],
         displayDate: `${new Date().getMonth() + 1}/${new Date().getDate()}`,
-        text: newText, catReaction: null, isSpecial: false, mediaType,
-        mediaEmoji: selectedEmoji, mediaUrl: previewUrl, hasStoredMedia: !!selectedFile,
+        text: capturedText, catReaction: null, isSpecial: false, mediaType,
+        mediaEmoji: selectedEmoji, mediaUrl: previewUrl, hasStoredMedia: !!capturedFile,
         mediaColor: mediaType === 'video' ? 'linear-gradient(135deg, #6c5ce7, #a29bfe)' : 'linear-gradient(135deg, #ff7675, #fab1a0)'
       };
+
       setEntries(prev => [newEntry, ...prev]);
+
+      // Clear inputs
       setNewText(''); setPreviewUrl(null); setSelectedFile(null); setIsCreating(false);
+
+      // Delay AI call to simulate "thinking" and ensure persistence
       setTimeout(async () => {
-        let res = await callGeminiAI(newEntry.text, selectedFile, activeCat);
-        if (!res) res = { reaction: "🐾", isSpecial: false };
+        let res = await callGeminiAI(capturedText, capturedFile, capturedCat, capturedLang, capturedUser);
+
+        if (!res) {
+          // Fallback based on personality if AI fails
+          const pool = {
+            sweet: capturedLang === 'JA' ? "ずっと一緒だにゃん🐾" : "Always with you 🐾",
+            playful: capturedLang === 'JA' ? "遊ぼうにゃ！🐾" : "Let's play! 🐾",
+            cool: capturedLang === 'JA' ? "フン、頑張ったにゃ。🐾" : "Hmph, you did well. 🐾"
+          };
+          res = { reaction: pool[capturedCat.personality] || "🐾", isSpecial: false };
+        }
+
         setEntries(cur => cur.map(ent => ent.id === entryId ? { ...ent, catReaction: res.reaction, isSpecial: res.isSpecial } : ent));
-        setNotification({ message: 'New Reply! 🐾' });
+        setNotification({ message: 'Got a reply! 🐾' });
         setTimeout(() => setNotification(null), 3000);
-      }, 3000);
-    } finally { setIsSaving(false); }
+      }, 2000);
+    } catch (err) {
+      console.error("Save error:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isMounted) return null;

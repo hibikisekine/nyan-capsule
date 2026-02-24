@@ -19,7 +19,7 @@ const LANGUAGES = {
     createCapsule: "思い出を記録",
     thinking: (name, type) => `${name}があとで返信してくれるよ、まってて${type === 'dog' ? 'ワン' : 'ニャ'}`,
     replyFrom: "のきもち",
-    aiSettings: "Gemini AI 設定",
+    aiSettings: "AIの知能設定 (Gemini API)",
     userName: "飼い主の名前",
     petSettings: "ペット設定",
     name: "お名前",
@@ -33,10 +33,12 @@ const LANGUAGES = {
     sweet: "あまえんぼ",
     cool: "クール",
     playful: "やんちゃ",
-    featureRequest: "✨ 犬対応などの新機能リクエストはこちら",
+    featureRequest: "✨ 犬対応などの新機能リクエスト",
     bestShot: "👑 BEST SHOT",
-    videoDigest: "▶ 動画ダイジェスト",
+    videoDigest: "🎬 動画ダイジェスト",
     bestVideo: "✨ ベスト版作成",
+    apiKeyHelp: "AIと会話するにはGoogle GeminiのAPIキーが必要です（無料）。1.Google AI Studioでキーを作成 2.ここに貼り付けて保存してください。",
+    howToTitle: "APIキーの取得方法",
   },
   EN: {
     welcome: "Memories in Capsules.",
@@ -52,7 +54,7 @@ const LANGUAGES = {
     createCapsule: "Create Capsule",
     thinking: (name, type) => `${name} is writing a reply for you, wait for me ${type === 'dog' ? 'woof' : 'meow'}`,
     replyFrom: "'s feelings",
-    aiSettings: "Gemini AI Settings",
+    aiSettings: "AI Intelligence (Gemini API)",
     userName: "Owner Name",
     petSettings: "Pet Settings",
     name: "Name",
@@ -66,10 +68,12 @@ const LANGUAGES = {
     sweet: "Sweet",
     cool: "Cool",
     playful: "Playful",
-    featureRequest: "✨ Request new features here",
+    featureRequest: "✨ Request New Features",
     bestShot: "👑 BEST SHOT",
-    videoDigest: "▶ Video Digest",
+    videoDigest: "🎬 Video Digest",
     bestVideo: "✨ Best Version",
+    apiKeyHelp: "Need a free Gemini API key to talk to your pet. 1. Create key at Google AI Studio 2. Paste here and Save.",
+    howToTitle: "How to get API Key",
   },
   ZH: {
     welcome: "将回忆装入胶囊。",
@@ -85,7 +89,7 @@ const LANGUAGES = {
     createCapsule: "记录回忆",
     thinking: (name, type) => `${name}稍后会回复你的，等我一下${type === 'dog' ? '汪' : '喵'}`,
     replyFrom: "的心情",
-    aiSettings: "Gemini AI 设置",
+    aiSettings: "AI 智能设置 (Gemini API)",
     userName: "主人姓名",
     petSettings: "宠物设置",
     name: "名字",
@@ -99,10 +103,12 @@ const LANGUAGES = {
     sweet: "撒娇",
     cool: "高冷",
     playful: "淘气",
-    featureRequest: "✨ 在此申请新功能",
+    featureRequest: "✨ 核心功能反馈与新功能请求",
     bestShot: "👑 最佳瞬间",
-    videoDigest: "▶ 视频摘要",
+    videoDigest: "🎬 视频摘要",
     bestVideo: "✨ 制作精华版",
+    apiKeyHelp: "需要免费的 Gemini API 密钥。1. 在 Google AI Studio 创建密钥 2. 粘贴到此处并保存。",
+    howToTitle: "如何获取 API 密钥",
   }
 };
 
@@ -141,6 +147,7 @@ export default function Home() {
   ]);
   const [activeCatId, setActiveCatId] = useState(1);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [showApiKeyHelp, setShowApiKeyHelp] = useState(false);
 
   const [isCreating, setIsCreating] = useState(false);
   const [newText, setNewText] = useState('');
@@ -512,7 +519,16 @@ export default function Home() {
             </div>
             <div className="tabs">
               <div className="setting-section">
-                <label>{t.aiSettings}</label>
+                <div className="label-row">
+                  <label>{t.aiSettings}</label>
+                  <button className="help-icon-btn" onClick={() => setShowApiKeyHelp(!showApiKeyHelp)}>?</button>
+                </div>
+                {showApiKeyHelp && (
+                  <div className="api-help-card glass animate-pop-in">
+                    <p>{t.apiKeyHelp}</p>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="manual-link">Google AI Studio →</a>
+                  </div>
+                )}
                 <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="API Key" />
                 <button className="test-btn" onClick={testAiConnection}>Test</button>
               </div>
@@ -621,7 +637,7 @@ export default function Home() {
           <span>SPONSORED</span>
           <p>Ad Placement</p>
         </div>
-        <button onClick={() => window.open('https://forms.gle/dummy')} className="request-link">{t.featureRequest}</button>
+        <button onClick={() => window.open('https://forms.gle/S2Y2r7Y9YEqXQYvP9')} className="request-link">{t.featureRequest}</button>
       </footer>
 
       <style jsx>{`
@@ -645,6 +661,11 @@ export default function Home() {
         .pet-btn { width: 45px; height: 45px; border-radius: 14px; border: 2px solid transparent; background: white; font-size: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.2s; }
         .pet-btn.active { border-color: var(--primary); transform: scale(1.1); }
         .pet-btn.add { border: 2px dashed #ddd; color: #999; }
+
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .help-icon-btn { width: 20px; height: 20px; border-radius: 50%; background: #eee; border: none; font-size: 12px; font-weight: 800; cursor: pointer; color: #666; }
+        .api-help-card { background: #fff8f0; border: 1px solid #ffeaa7; padding: 15px; border-radius: 15px; margin-bottom: 15px; font-size: 11px; line-height: 1.5; color: #d63031; }
+        .manual-link { display: block; margin-top: 8px; color: #0984e3; font-weight: 900; text-decoration: underline; }
 
         .timeline { display: flex; flex-direction: column; gap: 30px; }
         .card { border-radius: 32px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s; }

@@ -438,16 +438,28 @@ export default function Home() {
             </div>
             <form onSubmit={handleCreate}>
               <div className="upload-zone">
-                <input type="file" id="file" onChange={(e) => {
-                  const f = e.target.files[0];
-                  if (f) {
-                    setSelectedFile(f);
-                    setPreviewUrl(URL.createObjectURL(f));
-                    setMediaType(f.type.startsWith('image') ? 'photo' : 'video');
-                  }
-                }} />
+                <input
+                  type="file"
+                  id="file"
+                  accept="image/*,video/*"
+                  onChange={(e) => {
+                    const f = e.target.files[0];
+                    if (f) {
+                      const type = f.type.startsWith('image') ? 'photo' : 'video';
+                      setSelectedFile(f);
+                      setMediaType(type);
+                      setPreviewUrl(URL.createObjectURL(f));
+                    }
+                  }}
+                />
                 <label htmlFor="file" className="upload-btn">
-                  {previewUrl ? <img src={previewUrl} className="preview" /> : "📷 +"}
+                  {previewUrl ? (
+                    mediaType === 'video' ? (
+                      <video src={previewUrl} className="preview" muted playsInline />
+                    ) : (
+                      <img src={previewUrl} className="preview" />
+                    )
+                  ) : "📷 +"}
                 </label>
               </div>
               <textarea placeholder="..." value={newText} onChange={(e) => setNewText(e.target.value)} autoFocus />

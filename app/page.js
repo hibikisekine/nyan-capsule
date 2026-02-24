@@ -484,8 +484,8 @@ export default function Home() {
                     entry.mediaType === 'video' ? <video src={entry.mediaUrl} controls playsInline /> : <img src={entry.mediaUrl} alt="Mem" />
                   ) : <span className="media-emoji">{entry.mediaEmoji}</span>}
                   <div className="media-actions">
-                    {entry.mediaType === 'video' && <Link href="/video" className="badge-btn">▶ {t.videoDigest}</Link>}
-                    {entry.isSpecial && <Link href="/video?mode=best" className="badge-btn glow">✨ {t.bestVideo}</Link>}
+                    {entry.mediaType === 'video' && <Link href="/video" className="badge-btn">{t.videoDigest}</Link>}
+                    {entry.isSpecial && <Link href="/video?mode=best" className="badge-btn glow">{t.bestVideo}</Link>}
                   </div>
                 </div>
                 <div className="card-body">
@@ -506,6 +506,37 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {view === 'list' && (
+          <div className="list-view glass">
+            {entries.filter(e => e.catId === activeCatId).map(entry => (
+              <div key={entry.id} className="list-item">
+                <div className="item-date">{entry.displayDate}</div>
+                <div className="item-preview">{entry.mediaEmoji || (entry.mediaType === 'video' ? '🎬' : '📷')}</div>
+                <div className="item-text">{entry.text}</div>
+                {entry.isSpecial && <span className="item-special">✨</span>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {view === 'calendar' && (
+          <div className="calendar-view glass">
+            <div className="cal-header">{new Date().getFullYear()} / {new Date().getMonth() + 1}</div>
+            <div className="cal-grid">
+              {[...Array(31)].map((_, i) => {
+                const day = i + 1;
+                const hasEntry = entries.some(e => e.catId === activeCatId && e.displayDate.endsWith(`/${day}`));
+                return (
+                  <div key={i} className={`cal-day ${hasEntry ? 'has-data' : ''}`}>
+                    <span className="day-num">{day}</span>
+                    {hasEntry && <div className="dot" />}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </main>
@@ -763,6 +794,23 @@ export default function Home() {
         @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
         .animate-slide-up { animation: slideUp 0.4s ease-out; }
         .thinking { font-size: 14px; color: #999; font-style: italic; }
+
+        .list-view { padding: 15px; border-radius: 30px; }
+        .list-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 14px; }
+        .list-item:last-child { border: none; }
+        .item-date { font-weight: 900; color: #999; min-width: 50px; }
+        .item-preview { font-size: 20px; }
+        .item-text { flex: 1; color: #444; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .item-special { color: #f1c40f; }
+
+        .calendar-view { padding: 25px; border-radius: 40px; text-align: center; }
+        .cal-header { font-size: 20px; font-weight: 900; margin-bottom: 25px; color: #2d3436; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 12px; background: #fafbfc; position: relative; }
+        .cal-day.has-data { background: rgba(255,118,117,0.1); border: 1px solid rgba(255,118,117,0.2); }
+        .day-num { font-size: 10px; font-weight: 800; color: #999; }
+        .cal-day.has-data .day-num { color: var(--primary); }
+        .dot { width: 5px; height: 5px; background: var(--primary); border-radius: 50%; }
       `}</style>
     </div>
   );

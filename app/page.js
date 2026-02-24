@@ -239,13 +239,33 @@ export default function Home() {
   useEffect(() => {
     if (!isMounted) return;
     localStorage.setItem('nyan_lang', lang);
+  }, [lang, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
     const toSave = entries.map(({ mediaUrl, ...rest }) => rest);
     localStorage.setItem('nyan_entries', JSON.stringify(toSave));
+  }, [entries, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
     localStorage.setItem('nyan_cats', JSON.stringify(cats));
+  }, [cats, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
     localStorage.setItem('nyan_active_id', activeCatId.toString());
+  }, [activeCatId, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
     localStorage.setItem('nyan_user_name', userName);
+  }, [userName, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
     localStorage.setItem('nyan_api_key', apiKey);
-  }, [lang, entries, cats, activeCatId, userName, apiKey, isMounted]);
+  }, [apiKey, isMounted]);
 
   const testAiConnection = async () => {
     const trimmedKey = apiKey.trim();

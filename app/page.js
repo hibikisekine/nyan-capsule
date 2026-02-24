@@ -606,9 +606,45 @@ export default function Home() {
         .card-media img, .card-media video { width: 100%; height: 100%; object-fit: cover; }
         .media-emoji { font-size: 80px; }
         .special-label { position: absolute; top: 15px; left: 15px; background: #f1c40f; color: white; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 900; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .media-actions { position: absolute; bottom: 15px; right: 15px; display: flex; gap: 8px; }
-        .badge-btn { background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); color: white; padding: 6px 14px; border-radius: 20px; font-size: 10px; font-weight: 800; text-decoration: none; }
-        .badge-btn.glow { background: linear-gradient(135deg, #f1c40f, #f39c12); box-shadow: 0 0 15px rgba(241,196,15,0.4); }
+        .media-actions { 
+          position: absolute; 
+          top: 15px; 
+          right: 15px; 
+          display: flex; 
+          flex-direction: column;
+          gap: 8px; 
+          z-index: 20;
+        }
+        .badge-btn { 
+          background: rgba(255, 255, 255, 0.95); 
+          backdrop-filter: blur(10px);
+          color: #2d3436 !important; 
+          padding: 10px 18px; 
+          border-radius: 30px; 
+          font-size: 12px; 
+          font-weight: 900; 
+          text-decoration: none !important; 
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+          border: 1px solid rgba(255,255,255,0.3);
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .badge-btn:hover {
+          transform: translateY(-2px) scale(1.02);
+          background: #fff;
+          box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+        }
+        .badge-btn.glow { 
+          background: linear-gradient(135deg, #f1c40f, #f39c12); 
+          color: white !important;
+          box-shadow: 0 8px 20px rgba(241,196,15,0.4); 
+          border: none;
+        }
+        .badge-btn.glow:hover {
+          box-shadow: 0 12px 30px rgba(241,196,15,0.6);
+        }
 
         .card-body { padding: 25px; }
         .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }

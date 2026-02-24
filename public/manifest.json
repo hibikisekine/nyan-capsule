@@ -1,0 +1,17 @@
+{
+  "name": "NyanCapsule",
+  "short_name": "NyanCap",
+  "description": "猫との思い出を閉じ込めるカプセル",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff9f2",
+  "theme_color": "#ff9f43",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1864/1864514.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

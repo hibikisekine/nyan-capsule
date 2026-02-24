@@ -1,0 +1,131 @@
+:root {
+  --primary: #ff9f43;
+  --primary-glow: rgba(255, 159, 67, 0.4);
+  --primary-glow-soft: rgba(255, 159, 67, 0.15);
+  --primary-shadow: rgba(255, 159, 67, 0.2);
+  --secondary: #feca57;
+  --accent: #ff6b6b;
+  --bg-warm: #fff9f2;
+  --text-main: #2d3436;
+  --text-muted: #636e72;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.04);
+  --shadow-warm: 0 20px 40px rgba(255, 159, 67, 0.15);
+  --card-radius: 24px;
+}
+
+[data-theme='dark'] {
+  --bg-warm: #1a1a1a;
+  --text-main: #f5f6fa;
+  --text-muted: #b2bec3;
+  --glass-bg: rgba(30, 30, 30, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-outfit), sans-serif;
+  background-color: var(--bg-warm);
+  color: var(--text-main);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Utilities */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.nyan-gradient {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Mobile App Layout */
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  box-shadow: 0 0 100px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-glow);
+  border-radius: 10px;
+}

@@ -1,0 +1,28 @@
+{
+  "name": "nyan-capsule",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@remotion/bundler": "^4.0.428",
+    "@remotion/cli": "^4.0.428",
+    "@remotion/google-fonts": "^4.0.428",
+    "@remotion/player": "^4.0.428",
+    "@remotion/renderer": "^4.0.428",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "^4.0.428",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6"
+  }
+}

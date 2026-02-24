@@ -17,7 +17,7 @@ const LANGUAGES = {
     save: "保存",
     delete: "削除",
     createCapsule: "思い出を記録",
-    thinking: "考え中...",
+    thinking: (name, type) => `${name}があとで返信してくれるよ、まってて${type === 'dog' ? 'ワン' : 'ニャ'}`,
     replyFrom: "のきもち",
     aiSettings: "Gemini AI 設定",
     userName: "飼い主の名前",
@@ -50,7 +50,7 @@ const LANGUAGES = {
     save: "Save",
     delete: "Delete",
     createCapsule: "Create Capsule",
-    thinking: "Thinking...",
+    thinking: (name, type) => `${name} is writing a reply for you, wait for me ${type === 'dog' ? 'woof' : 'meow'}`,
     replyFrom: "'s feelings",
     aiSettings: "Gemini AI Settings",
     userName: "Owner Name",
@@ -73,7 +73,7 @@ const LANGUAGES = {
   },
   ZH: {
     welcome: "将回忆装入胶囊。",
-    welcomeSub: "在AI的帮助下记录与宠物的珍贵时光。",
+    welcomeSub: "在AI的帮助下记录与宠物の珍贵时光。",
     start: "开始 🐾",
     timeline: "时间轴",
     list: "列表",
@@ -83,7 +83,7 @@ const LANGUAGES = {
     save: "保存",
     delete: "删除",
     createCapsule: "记录回忆",
-    thinking: "思考中...",
+    thinking: (name, type) => `${name}稍后会回复你的，等我一下${type === 'dog' ? '汪' : '喵'}`,
     replyFrom: "的心情",
     aiSettings: "Gemini AI 设置",
     userName: "主人姓名",
@@ -314,9 +314,11 @@ export default function Home() {
         Language: ${currentLang}.
         Role: You are ${catProf.name}, a ${catProf.type || 'pet'}. Species: ${catProf.type}. Personality: ${catProf.personality}.
         Owner Name: ${currentUser}.
-        Task: Reply to the diary entry in ${currentLang}. Be warm, unique, and empathetic. 1-2 sentences. 
-        If it's special, set isSpecial to true.
-        Return ONLY valid JSON: { "reaction": "your reply", "isSpecial": true/false }
+        Task: Reply to the diary entry in ${currentLang}.
+        Length: Aim for approximately 50 characters (or 2-3 detailed sentences).
+        Context: Be warm, unique, and empathetic. Specifically reference the TEXT content and any VISUAL details found in the photo/video provided. Use pet-like endings (e.g., 'meow/nyan' for cats, 'woof/wan' for dogs).
+        If the memory is exceptionally good or emotional, set isSpecial to true.
+        Return ONLY valid JSON: { "reaction": "your detailed reply", "isSpecial": true/false }
       `;
 
       let result;
@@ -467,7 +469,7 @@ export default function Home() {
                     <div className="reply-avatar">{activeCat.emoji}</div>
                     <div className="reply-content">
                       <span className="reply-label">{activeCat.name} {t.replyFrom}</span>
-                      {entry.catReaction ? <p>{entry.catReaction}</p> : <div className="thinking">{t.thinking}</div>}
+                      {entry.catReaction ? <p>{entry.catReaction}</p> : <div className="thinking">{t.thinking(activeCat.name, activeCat.type)}</div>}
                     </div>
                   </div>
                 </div>

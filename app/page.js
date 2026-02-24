@@ -493,8 +493,30 @@ export default function Home() {
                 <button className="test-btn" onClick={testAiConnection}>Test</button>
               </div>
               <div className="setting-section">
+                <label>{t.userName}</label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder={t.userName}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                />
+              </div>
+              <div className="setting-section">
                 <label>{t.petSettings}</label>
-                <input type="text" value={activeCat.name} onChange={(e) => updateActiveCat({ name: e.target.value })} placeholder={t.name} />
+                <input
+                  type="text"
+                  value={activeCat.name}
+                  onChange={(e) => updateActiveCat({ name: e.target.value })}
+                  placeholder={t.name}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                />
                 <select value={activeCat.type} onChange={(e) => updateActiveCat({ type: e.target.value })}>
                   <option value="cat">{t.cat}</option>
                   <option value="dog">{t.dog}</option>

@@ -152,6 +152,10 @@ export default function Home() {
 
   const activeCat = cats.find(c => c.id === activeCatId) || cats[0];
 
+  const updateActiveCat = (newData) => {
+    setCats(prev => prev.map(c => c.id === activeCatId ? { ...c, ...newData } : c));
+  };
+
   const getDB = useCallback(() => {
     return new Promise((resolve, reject) => {
       if (typeof window === 'undefined') return reject('No window');

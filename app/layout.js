@@ -46,7 +46,8 @@ export const metadata = {
   robots: {
     index: true,
     follow: true,
-  }
+  },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }) {

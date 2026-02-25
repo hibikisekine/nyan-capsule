@@ -49,6 +49,12 @@ const LANGUAGES = {
     privacy: "プライバシーポリシー",
     terms: "利用規約",
     contact: "お問い合わせ",
+    backupTitle: "データのバックアップ",
+    exportData: "現在のデータを書き出す (JSON)",
+    importData: "データを読み込む",
+    backupSuccess: "バックアップを保存しました！",
+    restoreSuccess: "データを復元しました。ページをリロードします。",
+    restoreError: "データの読み込みに失敗しました。",
   },
   EN: {
     welcome: "Memories in Capsules.",
@@ -87,6 +93,12 @@ const LANGUAGES = {
     privacy: "Privacy Policy",
     terms: "Terms of Service",
     contact: "Contact Us",
+    backupTitle: "Data Backup",
+    exportData: "Export Current Data (JSON)",
+    importData: "Import Data",
+    backupSuccess: "Backup saved!",
+    restoreSuccess: "Data restored! Reloading...",
+    restoreError: "Failed to load data.",
   },
   ZH: {
     welcome: "将回忆装入胶囊。",
@@ -125,6 +137,12 @@ const LANGUAGES = {
     privacy: "隐私政策",
     terms: "使用条款",
     contact: "联系我们",
+    backupTitle: "数据备份",
+    exportData: "导出当前数据 (JSON)",
+    importData: "导入数据",
+    backupSuccess: "备份已保存！",
+    restoreSuccess: "数据已恢复！正在重新加载...",
+    restoreError: "数据加载失败。",
   }
 };
 
@@ -345,6 +363,92 @@ export default function Home() {
       setAiError(e.message);
     }
   };
+  const handleExport = async () => {
+    try {
+      const db = await getDB();
+      const tx = db.transaction('media', 'readonly');
+      const store = tx.objectStore('media');
+      const allMediaKeys = await new Promise(resolve => {
+        const req = store.getAllKeys();
+        req.onsuccess = () => resolve(req.result);
+      });
+
+      const mediaData = {};
+      for (const key of allMediaKeys) {
+        const blob = await new Promise(resolve => {
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result);
+        });
+        if (blob instanceof Blob) {
+          const reader = new FileReader();
+          mediaData[key] = await new Promise(resolve => {
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+        }
+      }
+
+      const backup = {
+        version: 1,
+        localStorage: {
+          nyan_entries: localStorage.getItem('nyan_entries'),
+          nyan_cats: localStorage.getItem('nyan_cats'),
+          nyan_active_id: localStorage.getItem('nyan_active_id'),
+          nyan_lang: localStorage.getItem('nyan_lang'),
+          nyan_user_name: localStorage.getItem('nyan_user_name'),
+          nyan_api_key: localStorage.getItem('nyan_api_key'),
+          nyan_stable_model: localStorage.getItem('nyan_stable_model'),
+        },
+        media: mediaData
+      };
+
+      const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nyan-capsule-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      setNotification({ message: t.backupSuccess });
+      setTimeout(() => setNotification(null), 3000);
+    } catch (e) {
+      console.error(e);
+      alert(t.restoreError);
+    }
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const backup = JSON.parse(text);
+
+      if (backup.localStorage) {
+        Object.entries(backup.localStorage).forEach(([k, v]) => {
+          if (v !== null) localStorage.setItem(k, v);
+        });
+      }
+
+      if (backup.media) {
+        const db = await getDB();
+        const tx = db.transaction('media', 'readwrite');
+        const store = tx.objectStore('media');
+        for (const [key, dataUrl] of Object.entries(backup.media)) {
+          const res = await fetch(dataUrl);
+          const blob = await res.blob();
+          store.put(blob, key);
+        }
+      }
+
+      setNotification({ message: t.restoreSuccess });
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (err) {
+      console.error(err);
+      alert(t.restoreError);
+    }
+  };
+
 
   const callGeminiAI = async (text, file, catProf, currentLang, currentUser) => {
     const key = apiKey.trim() || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -809,6 +913,20 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+
+                <div className="setting-section">
+                  <label className="font-heading"><Clock size={14} className="inline mr-1" /> {t.backupTitle}</label>
+                  <p className="sub-label mb-2">ブラウザを初期化しても、このファイルがあれば復元できます。</p>
+                  <div className="flex flex-col gap-2">
+                    <button className="clay-button w-full text-sm py-3" onClick={handleExport}>
+                      📥 {t.exportData}
+                    </button>
+                    <label className="clay-card p-3 text-center text-xs font-bold cursor-pointer hover:bg-orange-50 transition-colors">
+                      📤 {t.importData}
+                      <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <motion.button
@@ -918,22 +1036,28 @@ export default function Home() {
         </motion.button>
       )}
 
-      <footer className="footer-clay">
+      <footer className="footer-clay border-t border-orange-100">
         <div className="footer-content">
           <div className="ad-box-clay clay-card">
-            <span className="font-heading">SPONSORED</span>
-            <p>Support NyanCapsule 🐾</p>
+            <span className="font-heading">NYANCAPSULE SUPPORT</span>
+            <p className="text-sm">私たちのサービスを応援してください 🐾</p>
           </div>
-          <button onClick={() => window.open('https://forms.gle/S2Y2r7Y9YEqXQYvP9')} className="request-link-clay">
-            {t.featureRequest}
-          </button>
+
           <div className="policy-links">
-            <Link href="/privacy">{t.privacy || 'プライバシーポリシー'}</Link>
-            <Link href="/terms">{t.terms || '利用規約'}</Link>
-            <button onClick={() => window.open('https://forms.gle/S2Y2r7Y9YEqXQYvP9')} className="request-link-clay" style={{ fontSize: '11px', opacity: 0.6 }}>{t.contact || 'お問い合わせ'}</button>
+            <Link href="/privacy">{t.privacy}</Link>
+            <Link href="/terms">{t.terms}</Link>
+            <button onClick={() => window.open('https://forms.gle/S2Y2r7Y9YEqXQYvP9')} className="contact-btn-footer">
+              {t.contact}
+            </button>
           </div>
-          <div className="about-section mt-10 p-6 opacity-60 text-xs leading-relaxed max-w-md mx-auto">
-            <p>NyanCapsuleは、愛するペットとの瞬間を大切に保存し、AIの力でその思い出をより輝かせるためのデジタルカプセルです。動画ダイジェスト生成やAIリアクションなど、最新技術でペットとの絆を深めます。</p>
+
+          <div className="about-section opacity-70 text-xs leading-relaxed max-w-sm">
+            <p className="mb-2 font-bold">NyanCapsuleについて</p>
+            <p>NyanCapsuleは、愛するペットとの日常生活をAIの力で特別な思い出として保存するためのデジタルカプセルです。あなたのペットが何を考えているのか、AIがその気持ちを代弁し、一生の宝物になる動画ダイジェストを作成します。</p>
+          </div>
+
+          <div className="mt-8 text-[10px] opacity-40 font-bold tracking-widest uppercase">
+            &copy; {new Date().getFullYear()} NyanCapsule Team. All Rights Reserved.
           </div>
         </div>
       </footer>
@@ -1112,18 +1236,27 @@ export default function Home() {
         .policy-links { margin-top: 20px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
         .policy-links a, .policy-links button { font-size: 11px; color: var(--text-muted); text-decoration: none; opacity: 0.6; font-weight: 700; transition: opacity 0.2s; background: none; border: none; cursor: pointer; padding: 0; }
         .policy-links a:hover, .policy-links button:hover { opacity: 1; }
-        
         .w-full { width: 100%; }
         .flex { display: flex; }
+        .flex-col { flex-direction: column; }
         .items-center { align-items: center; }
+        .gap-2 { gap: 8px; }
         .gap-3 { gap: 12px; }
         .shrink-0 { flex-shrink: 0; }
+        .hidden { display: none; }
 
-        .about-section { margin-top: 40px; padding: 24px; max-width: 440px; margin-left: auto; margin-right: auto; border-top: 1px dashed rgba(0,0,0,0.05); }
-        .mt-10 { margin-top: 40px; }
-        .p-6 { padding: 24px; }
-        .mx-auto { margin-left: auto; margin-right: auto; }
-        .max-w-md { max-width: 448px; }
+        .contact-btn-footer { background: none; border: none; font-size: 11px; color: var(--text-muted); cursor: pointer; font-weight: 700; opacity: 0.6; padding: 0; transition: opacity 0.2s; }
+        .contact-btn-footer:hover { opacity: 1; }
+        .border-t { border-top: 1px solid; }
+        .border-orange-100 { border-color: #ffedd5; }
+        .mt-8 { margin-top: 32px; }
+        .text-sm { font-size: 14px; }
+        .max-w-sm { max-width: 384px; }
+        .tracking-widest { letter-spacing: 0.1em; }
+        .uppercase { text-transform: uppercase; }
+
+        .about-section { margin-top: 40px; text-align: center; }
+        .about-section p { margin-bottom: 8px; }
 
         .empty-state { padding: 60px 20px; text-align: center; opacity: 0.6; }
         .empty-icon { font-size: 60px; margin-bottom: 20px; }

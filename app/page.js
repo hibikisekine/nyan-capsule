@@ -48,6 +48,7 @@ const LANGUAGES = {
     howToTitle: "APIキーの取得方法",
     privacy: "プライバシーポリシー",
     terms: "利用規約",
+    contact: "お問い合わせ",
   },
   EN: {
     welcome: "Memories in Capsules.",
@@ -85,6 +86,7 @@ const LANGUAGES = {
     howToTitle: "How to get API Key",
     privacy: "Privacy Policy",
     terms: "Terms of Service",
+    contact: "Contact Us",
   },
   ZH: {
     welcome: "将回忆装入胶囊。",
@@ -122,6 +124,7 @@ const LANGUAGES = {
     howToTitle: "如何获取 API 密钥",
     privacy: "隐私政策",
     terms: "使用条款",
+    contact: "联系我们",
   }
 };
 
@@ -494,14 +497,14 @@ export default function Home() {
             <motion.button
               whileHover={{ rotate: 45, scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className="settings-btn-clay clay-card"
+              className="settings-btn-clay clay-card shrink-0"
               onClick={() => setIsEditingProfile(true)}
               title={t.settings}
             >
               <Settings size={18} />
             </motion.button>
 
-            <div className="lang-selector-clay">
+            <div className="lang-selector-clay shrink-0">
               <Globe size={14} className="globe-icon" />
               <select value={lang} onChange={(e) => setLang(e.target.value)}>
                 <option value="JA">JP</option>
@@ -669,20 +672,38 @@ export default function Home() {
                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
                   <div key={i} className="cal-weekday font-heading">{d}</div>
                 ))}
-                {[...Array(31)].map((_, i) => {
-                  const day = i + 1;
-                  const hasEntry = entries.some(e => e.catId === activeCatId && e.displayDate.endsWith(`/${day}`));
-                  return (
-                    <motion.div
-                      key={i}
-                      whileHover={hasEntry ? { scale: 1.1 } : {}}
-                      className={`cal-day-clay ${hasEntry ? 'has-data' : ''}`}
-                    >
-                      <span className="day-num">{day}</span>
-                      {hasEntry && <div className="dot-clay nyan-gradient" />}
-                    </motion.div>
-                  );
-                })}
+                {(() => {
+                  const now = new Date();
+                  const year = now.getFullYear();
+                  const month = now.getMonth();
+                  const firstDay = new Date(year, month, 1).getDay();
+                  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                  const days = [];
+                  // Padding for first day
+                  for (let i = 0; i < firstDay; i++) {
+                    days.push(<div key={`empty-${i}`} className="cal-day-clay opacity-0" />);
+                  }
+
+                  for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `${year}/${month + 1}/${d}`;
+                    const hasEntry = entries.some(e =>
+                      e.catId === activeCatId &&
+                      (e.displayDate === dateStr || e.displayDate.endsWith(`/${d}`))
+                    );
+                    days.push(
+                      <motion.div
+                        key={d}
+                        whileHover={hasEntry ? { scale: 1.1 } : {}}
+                        className={`cal-day-clay ${hasEntry ? 'has-data' : ''}`}
+                      >
+                        <span className="day-num">{d}</span>
+                        {hasEntry && <div className="dot-clay nyan-gradient" />}
+                      </motion.div>
+                    );
+                  }
+                  return days;
+                })()}
               </div>
             </div>
           )}
@@ -909,6 +930,7 @@ export default function Home() {
           <div className="policy-links">
             <Link href="/privacy">{t.privacy || 'プライバシーポリシー'}</Link>
             <Link href="/terms">{t.terms || '利用規約'}</Link>
+            <button onClick={() => window.open('https://forms.gle/S2Y2r7Y9YEqXQYvP9')} className="request-link-clay" style={{ fontSize: '11px', opacity: 0.6 }}>{t.contact || 'お問い合わせ'}</button>
           </div>
           <div className="about-section mt-10 p-6 opacity-60 text-xs leading-relaxed max-w-md mx-auto">
             <p>NyanCapsuleは、愛するペットとの瞬間を大切に保存し、AIの力でその思い出をより輝かせるためのデジタルカプセルです。動画ダイジェスト生成やAIリアクションなど、最新技術でペットとの絆を深めます。</p>
@@ -1051,7 +1073,8 @@ export default function Home() {
         .textarea-container-clay { padding: 20px; border: 4px solid #fff; background: white; }
         .textarea-container-clay textarea { width: 100%; height: 140px; border: none; outline: none; font-size: 18px; font-weight: 500; font-family: inherit; resize: none; color: var(--text-main); background: transparent; }
 
-        .fab-clay { position: fixed; bottom: 35px; right: 30px; width: 72px; height: 72px; border-radius: 24px; border: 5px solid #fff; z-index: 50; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 30px rgba(249, 115, 22, 0.4); }
+        .fab-clay { position: fixed; bottom: 35px; right: 30px; width: 72px; height: 72px; border-radius: 24px; border: 5px solid #fff; z-index: 50; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 30px rgba(249, 115, 22, 0.4); box-sizing: border-box; }
+        .fab-clay :global(svg) { flex-shrink: 0; }
 
         .list-view-clay { padding: 15px; border-radius: 32px; background: white; border: 4px solid #fff; }
         .list-item-clay { display: flex; align-items: center; gap: 20px; padding: 20px; border-bottom: 2px solid #f1f5f9; transition: background 0.2s; border-radius: 20px; cursor: pointer; }
@@ -1086,11 +1109,17 @@ export default function Home() {
         .request-link-clay:hover { opacity: 1; }
 
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
-        .policy-links { margin-top: 20px; display: flex; gap: 20px; justify-content: center; }
-        .policy-links a { font-size: 11px; color: var(--text-muted); text-decoration: none; opacity: 0.6; font-weight: 700; transition: opacity 0.2s; }
-        .policy-links a:hover { opacity: 1; }
+        .policy-links { margin-top: 20px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .policy-links a, .policy-links button { font-size: 11px; color: var(--text-muted); text-decoration: none; opacity: 0.6; font-weight: 700; transition: opacity 0.2s; background: none; border: none; cursor: pointer; padding: 0; }
+        .policy-links a:hover, .policy-links button:hover { opacity: 1; }
+        
+        .w-full { width: 100%; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .gap-3 { gap: 12px; }
+        .shrink-0 { flex-shrink: 0; }
 
-        .about-section { margin-top: 40px; padding: 24px; max-width: 440px; margin-left: auto; margin-right: auto; }
+        .about-section { margin-top: 40px; padding: 24px; max-width: 440px; margin-left: auto; margin-right: auto; border-top: 1px dashed rgba(0,0,0,0.05); }
         .mt-10 { margin-top: 40px; }
         .p-6 { padding: 24px; }
         .mx-auto { margin-left: auto; margin-right: auto; }
@@ -1100,17 +1129,13 @@ export default function Home() {
         .empty-icon { font-size: 60px; margin-bottom: 20px; }
 
         .settings-btn-clay { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: white; border-radius: 12px; border: 3px solid #fff; cursor: pointer; color: var(--text-muted); box-shadow: var(--clay-shadow-outer); }
-        .flex { display: flex; }
-        .items-center { align-items: center; }
-        .gap-3 { gap: 12px; }
-
         .onboarding-card-clay { max-width: 400px; width: 90%; padding: 50px 30px; text-align: center; }
         .onboarding-emoji { font-size: 80px; margin-bottom: 20px; }
 
         /* Mobile specific adjustments */
         @media (max-width: 480px) {
           .header { padding-top: 40px; }
-          .cat-avatar { width: 44px; height: 44px; font-size: 24px; }
+          .cat-avatar { width: 44px; height: 44px; font-size: 24px; flex-shrink: 0; }
           .title-row h2 { font-size: 18px; }
           .tab-nav button span { display: none; }
           .tab-nav button { padding: 8px; font-size: 14px; }
@@ -1118,6 +1143,7 @@ export default function Home() {
           .card-media { height: 200px; }
           .diary-text { font-size: 16px; }
           .modal-content-clay { padding: 30px 20px; }
+          .fab-clay { width: 64px; height: 64px; bottom: 25px; right: 20px; }
         }
       `}</style>
     </div>
